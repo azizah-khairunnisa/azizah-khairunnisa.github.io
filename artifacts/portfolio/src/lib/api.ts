@@ -86,3 +86,26 @@ export async function trackDownload(id: string): Promise<string> {
   const data = await res.json() as { file_url: string };
   return data.file_url;
 }
+
+export interface BulkUploadResult {
+  name: string;
+  success: boolean;
+  error?: string;
+  file?: PortfolioFile;
+}
+
+export async function uploadFilesBulk(files: File[]): Promise<BulkUploadResult[]> {
+  const fd = new FormData();
+  for (const file of files) fd.append("files", file);
+  const res = await fetch(`${BASE}/files/bulk`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: fd,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Bulk upload failed" })) as { error: string };
+    throw new Error(err.error);
+  }
+  const data = await res.json() as { results: BulkUploadResult[] };
+  return data.results;
+}

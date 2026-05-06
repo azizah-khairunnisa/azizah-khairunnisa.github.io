@@ -8,6 +8,18 @@ import path from "node:path";
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
 
+const mimeToType = (mime: string, ext: string): string => {
+  if (mime === "application/pdf") return "pdf";
+  if (mime.includes("word") || mime.includes("officedocument.wordprocessingml") || ["doc", "docx"].includes(ext)) return "doc";
+  if (mime.includes("sheet") || mime.includes("excel") || mime.includes("spreadsheet") || ["xls", "xlsx", "csv"].includes(ext)) return "spreadsheet";
+  if (mime.includes("presentation") || mime.includes("powerpoint") || ["ppt", "pptx"].includes(ext)) return "presentation";
+  if (mime.startsWith("image/")) return "image";
+  if (mime.startsWith("video/")) return "video";
+  if (mime.startsWith("audio/")) return "audio";
+  if (mime.includes("zip") || mime.includes("rar") || mime.includes("7z") || mime.includes("tar")) return "archive";
+  return "other";
+};
+
 const TABLE = "portfolio_files";
 
 router.get("/", async (req, res) => {
@@ -55,18 +67,6 @@ router.post("/", requireAdmin, upload.single("file"), async (req, res) => {
   const ext = path.extname(file.originalname).replace(".", "") || "bin";
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-  const mimeToType = (mime: string, ext: string): string => {
-    if (mime === "application/pdf") return "pdf";
-    if (mime.includes("word") || mime.includes("officedocument.wordprocessingml") || ["doc", "docx"].includes(ext)) return "doc";
-    if (mime.includes("sheet") || mime.includes("excel") || mime.includes("spreadsheet") || ["xls", "xlsx", "csv"].includes(ext)) return "spreadsheet";
-    if (mime.includes("presentation") || mime.includes("powerpoint") || ["ppt", "pptx"].includes(ext)) return "presentation";
-    if (mime.startsWith("image/")) return "image";
-    if (mime.startsWith("video/")) return "video";
-    if (mime.startsWith("audio/")) return "audio";
-    if (mime.includes("zip") || mime.includes("rar") || mime.includes("7z") || mime.includes("tar")) return "archive";
-    return "other";
-  };
-
   let fileUrl: string;
   try {
     fileUrl = await saveFile(fileName, file.buffer);
@@ -88,6 +88,38 @@ router.post("/", requireAdmin, upload.single("file"), async (req, res) => {
     await removeFile(fileName);
     res.status(500).json({ error: "Failed to save file metadata" });
   }
+});
+
+router.post("/bulk", requireAdmin, upload.array("files", 50), async (req, res) => {
+  const files = req.files as Express.Multer.File[];
+  if (!files || files.length === 0) {
+    res.status(400).json({ error: "No files uploaded" });
+    return;
+  }
+
+  const results: { name: string; success: boolean; error?: string; file?: unknown }[] = [];
+
+  for (const file of files) {
+    const ext = path.extname(file.originalname).replace(".", "") || "bin";
+    const baseName = path.basename(file.originalname, path.extname(file.originalname));
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const title = baseName.replace(/[-_]/g, " ").trim() || file.originalname;
+
+    try {
+      const fileUrl = await saveFile(fileName, file.buffer);
+      const { rows } = await pool.query(
+        `INSERT INTO ${TABLE} (title, description, file_url, file_type, featured, download_count)
+         VALUES ($1, $2, $3, $4, $5, 0) RETURNING *`,
+        [title, "", fileUrl, mimeToType(file.mimetype, ext), false]
+      );
+      results.push({ name: file.originalname, success: true, file: rows[0] });
+    } catch (err) {
+      req.log.error(err);
+      results.push({ name: file.originalname, success: false, error: "Upload failed" });
+    }
+  }
+
+  res.status(201).json({ results });
 });
 
 router.patch("/:id", requireAdmin, async (req, res) => {
