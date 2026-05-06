@@ -1,0 +1,22 @@
+[build]
+  command = "pnpm install && pnpm --filter @workspace/portfolio run build && node netlify/build-function.mjs"
+  publish = "artifacts/portfolio/dist/public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PORT = "8888"
+  BASE_PATH = "/"
+  NODE_ENV = "production"
+
+# Proxy /api/* → Netlify serverless function
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# SPA fallback — all other routes → index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
