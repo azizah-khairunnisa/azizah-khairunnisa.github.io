@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 
-const SESSION_SECRET = process.env.SESSION_SECRET || "dev-secret-change-me";
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const SESSION_SECRET = (process.env.SESSION_SECRET || "dev-secret-change-me").trim();
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim();
 
 export interface AdminPayload {
   username: string;
@@ -25,7 +25,8 @@ export function verifyAdminToken(token: string): AdminPayload | null {
 }
 
 export function checkAdminCredentials(username: string, password: string): boolean {
-  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+  if (!ADMIN_USERNAME || !ADMIN_PASSWORD) return false;
+  return username.trim() === ADMIN_USERNAME && password === ADMIN_PASSWORD;
 }
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
