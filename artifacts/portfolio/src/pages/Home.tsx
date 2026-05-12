@@ -369,14 +369,11 @@ export default function Home() {
               </h1>
 
               <p className="text-lg md:text-xl text-blue-600 font-mono mb-5">
-                Human Resources <span className="text-slate-400">&</span> Administration Enthusiast
+                Operational Assistant, <span className="text-lg md:text-xl text-blue-600 font-mono mb-5">Administration </span>& Coordination 
               </p>
 
               <p className="text-base text-slate-500 max-w-xl mb-6 leading-relaxed">
-                Lulusan S1 Psikologi dengan ketertarikan pada bidang Human Resources dan administrasi.
-                Berpengalaman dalam pengelolaan data, administrasi sekretariat, pelatihan, serta koordinasi
-                kegiatan berbasis tim. Detail-oriented, adaptif, dan berkomitmen memberikan hasil kerja yang
-                rapi, efisien, dan profesional.
+                Lulusan S1 Psikologi dengan ketertarikan pada bidang operasional, administrasi, dan koordinasi kegiatan. Berpengalaman dalam pengelolaan data, administrasi sekretariat, penyusunan dokumen, serta koordinasi kerja tim dan pelaksanaan kegiatan. Memiliki kemampuan detail-oriented, adaptif, dan komunikatif dalam mendukung kelancaran operasional serta memastikan pekerjaan administratif berjalan rapi, efisien, dan profesional.
               </p>
 
               {/* Contact info */}
@@ -893,7 +890,7 @@ export default function Home() {
                 azhkrn@gmail.com
               </a>
               <a
-                href="tel:+6289604488288"
+                href="https://wa.me/6289604488288"
                 className="flex items-center gap-2.5 border border-white/30 hover:border-white/60 text-white font-semibold py-3 px-8 rounded-xl transition-colors hover:bg-white/10 w-full sm:w-auto justify-center"
               >
                 <Phone className="w-4 h-4" />
