@@ -199,20 +199,45 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
 
     if (file.file_type === "pdf") {
       const pdfUrl = absoluteUrl(file.file_url);
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
       return (
         <div className="flex flex-col gap-3">
           <iframe
-            src={pdfUrl}
-            className="w-full rounded-lg border border-slate-200"
-            style={{ height: "55vh" }}
+            src={viewerUrl}
+            className="w-full rounded-lg border border-slate-200 bg-slate-50"
+            style={{ height: "60vh" }}
             title={file.title}
+            allow="autoplay"
           />
           <button
             onClick={openInNewTab}
             className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2.5 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
           >
             <Eye className="w-4 h-4" />
-            Buka PDF di tab baru (jika preview tidak tampil)
+            Buka di tab baru
+          </button>
+        </div>
+      );
+    }
+
+    if (["document", "doc", "spreadsheet", "presentation"].includes(file.file_type)) {
+      const docUrl = absoluteUrl(file.file_url);
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(docUrl)}&embedded=true`;
+      return (
+        <div className="flex flex-col gap-3">
+          <iframe
+            src={viewerUrl}
+            className="w-full rounded-lg border border-slate-200 bg-slate-50"
+            style={{ height: "60vh" }}
+            title={file.title}
+            allow="autoplay"
+          />
+          <button
+            onClick={openInNewTab}
+            className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2.5 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
+          >
+            <Eye className="w-4 h-4" />
+            Buka di tab baru
           </button>
         </div>
       );
@@ -232,6 +257,31 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
       return (
         <div className="flex flex-col items-center justify-center h-32 gap-4">
           <audio src={absoluteUrl(file.file_url)} controls className="w-full" />
+        </div>
+      );
+    }
+
+    const extUrl = absoluteUrl(file.file_url);
+    const ext = extUrl.split("?")[0].split(".").pop()?.toLowerCase();
+    const viewableExts = ["docx", "doc", "xlsx", "xls", "pptx", "ppt"];
+    if (ext && viewableExts.includes(ext)) {
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(extUrl)}&embedded=true`;
+      return (
+        <div className="flex flex-col gap-3">
+          <iframe
+            src={viewerUrl}
+            className="w-full rounded-lg border border-slate-200 bg-slate-50"
+            style={{ height: "60vh" }}
+            title={file.title}
+            allow="autoplay"
+          />
+          <button
+            onClick={openInNewTab}
+            className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2.5 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
+          >
+            <Eye className="w-4 h-4" />
+            Buka di tab baru
+          </button>
         </div>
       );
     }
