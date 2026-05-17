@@ -178,11 +178,16 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
     window.open(file.file_url, "_blank", "noopener,noreferrer");
   };
 
+  const absoluteUrl = (url: string) => {
+    if (url.startsWith("http")) return url;
+    return `${window.location.origin}${url}`;
+  };
+
   const renderPreview = () => {
     if (file.file_type === "image") {
       return (
         <img
-          src={file.file_url}
+          src={absoluteUrl(file.file_url)}
           alt={file.title}
           className="w-full rounded-lg object-contain max-h-[50vh]"
           onError={(e) => {
@@ -193,21 +198,40 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
     }
 
     if (file.file_type === "pdf") {
+      const pdfUrl = absoluteUrl(file.file_url);
       return (
         <div className="flex flex-col gap-3">
-          <embed
-            src={`${file.file_url}#toolbar=1&navpanes=0`}
-            type="application/pdf"
+          <iframe
+            src={pdfUrl}
             className="w-full rounded-lg border border-slate-200"
-            style={{ height: "50vh" }}
+            style={{ height: "55vh" }}
+            title={file.title}
           />
           <button
             onClick={openInNewTab}
             className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2.5 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
           >
             <Eye className="w-4 h-4" />
-            Buka PDF di tab baru
+            Buka PDF di tab baru (jika preview tidak tampil)
           </button>
+        </div>
+      );
+    }
+
+    if (file.file_type === "video") {
+      return (
+        <video
+          src={absoluteUrl(file.file_url)}
+          controls
+          className="w-full rounded-lg max-h-[50vh]"
+        />
+      );
+    }
+
+    if (file.file_type === "audio") {
+      return (
+        <div className="flex flex-col items-center justify-center h-32 gap-4">
+          <audio src={absoluteUrl(file.file_url)} controls className="w-full" />
         </div>
       );
     }
