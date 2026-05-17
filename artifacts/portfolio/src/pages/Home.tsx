@@ -184,12 +184,14 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
   };
 
   const renderPreview = () => {
+    const url = absoluteUrl(file.file_url);
+
     if (file.file_type === "image") {
       return (
         <img
-          src={absoluteUrl(file.file_url)}
+          src={url}
           alt={file.title}
-          className="w-full rounded-lg object-contain max-h-[50vh]"
+          className="w-full rounded-lg object-contain max-h-[60vh]"
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = "none";
           }}
@@ -198,46 +200,25 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
     }
 
     if (file.file_type === "pdf") {
-      const pdfUrl = absoluteUrl(file.file_url);
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
       return (
         <div className="flex flex-col gap-3">
-          <iframe
-            src={viewerUrl}
+          <object
+            data={url}
+            type="application/pdf"
             className="w-full rounded-lg border border-slate-200 bg-slate-50"
             style={{ height: "60vh" }}
-            title={file.title}
-            allow="autoplay"
-          />
+          >
+            <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-500 py-10">
+              <FileText className="w-12 h-12 opacity-40" />
+              <p className="text-sm">Browser tidak mendukung preview PDF langsung.</p>
+            </div>
+          </object>
           <button
             onClick={openInNewTab}
-            className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2.5 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
+            className="flex items-center justify-center gap-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl py-2.5 px-4 transition-colors"
           >
             <Eye className="w-4 h-4" />
-            Buka di tab baru
-          </button>
-        </div>
-      );
-    }
-
-    if (["document", "doc", "spreadsheet", "presentation"].includes(file.file_type)) {
-      const docUrl = absoluteUrl(file.file_url);
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(docUrl)}&embedded=true`;
-      return (
-        <div className="flex flex-col gap-3">
-          <iframe
-            src={viewerUrl}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50"
-            style={{ height: "60vh" }}
-            title={file.title}
-            allow="autoplay"
-          />
-          <button
-            onClick={openInNewTab}
-            className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2.5 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
-          >
-            <Eye className="w-4 h-4" />
-            Buka di tab baru
+            Buka PDF di tab baru
           </button>
         </div>
       );
@@ -245,57 +226,51 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
 
     if (file.file_type === "video") {
       return (
-        <video
-          src={absoluteUrl(file.file_url)}
-          controls
-          className="w-full rounded-lg max-h-[50vh]"
-        />
+        <video src={url} controls className="w-full rounded-lg max-h-[55vh]" />
       );
     }
 
     if (file.file_type === "audio") {
       return (
-        <div className="flex flex-col items-center justify-center h-32 gap-4">
-          <audio src={absoluteUrl(file.file_url)} controls className="w-full" />
+        <div className="flex flex-col items-center justify-center py-6 gap-4">
+          <audio src={url} controls className="w-full" />
         </div>
       );
     }
 
-    const extUrl = absoluteUrl(file.file_url);
-    const ext = extUrl.split("?")[0].split(".").pop()?.toLowerCase();
-    const viewableExts = ["docx", "doc", "xlsx", "xls", "pptx", "ppt"];
-    if (ext && viewableExts.includes(ext)) {
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(extUrl)}&embedded=true`;
-      return (
-        <div className="flex flex-col gap-3">
-          <iframe
-            src={viewerUrl}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50"
-            style={{ height: "60vh" }}
-            title={file.title}
-            allow="autoplay"
-          />
-          <button
-            onClick={openInNewTab}
-            className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2.5 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
-          >
-            <Eye className="w-4 h-4" />
-            Buka di tab baru
-          </button>
-        </div>
-      );
-    }
+    const typeIcons: Record<string, string> = {
+      doc: "📝",
+      spreadsheet: "📊",
+      presentation: "📋",
+      archive: "🗜️",
+    };
+
+    const typeLabels: Record<string, string> = {
+      doc: "Dokumen Word",
+      spreadsheet: "Spreadsheet Excel",
+      presentation: "Presentasi PowerPoint",
+      archive: "File Arsip",
+    };
+
+    const icon = typeIcons[file.file_type] ?? "📄";
+    const label = typeLabels[file.file_type] ?? "Dokumen";
 
     return (
-      <div className="flex flex-col items-center justify-center h-48 gap-4 text-slate-400">
-        <FileText className="w-16 h-16 opacity-40" />
-        <p className="text-sm">Preview tidak tersedia untuk tipe file ini</p>
+      <div className="flex flex-col items-center justify-center gap-5 py-10 px-4 bg-slate-50 rounded-xl border border-slate-200">
+        <span className="text-6xl">{icon}</span>
+        <div className="text-center">
+          <p className="font-semibold text-slate-800 text-lg">{file.title}</p>
+          <p className="text-sm text-slate-500 mt-1">{label}</p>
+        </div>
+        <p className="text-sm text-slate-400 text-center max-w-xs">
+          Klik tombol di bawah untuk membuka dan melihat isi dokumen ini.
+        </p>
         <button
           onClick={openInNewTab}
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-xl py-2 px-4 transition-colors bg-blue-50 hover:bg-blue-100"
+          className="flex items-center gap-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl py-3 px-6 transition-colors shadow-sm"
         >
           <Eye className="w-4 h-4" />
-          Buka di tab baru
+          Buka Dokumen
         </button>
       </div>
     );
