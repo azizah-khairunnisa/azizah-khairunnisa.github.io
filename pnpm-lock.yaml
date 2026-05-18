@@ -440,6 +440,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.105.1
         version: 2.105.1
+      pdfjs-dist:
+        specifier: 5.4.296
+        version: 5.4.296
       react-pdf:
         specifier: ^10.4.1
         version: 10.4.1(@types/react@19.2.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
