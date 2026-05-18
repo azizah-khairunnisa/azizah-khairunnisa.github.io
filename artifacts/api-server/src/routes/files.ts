@@ -69,7 +69,7 @@ router.post("/", requireAdmin, upload.single("file"), async (req, res) => {
 
   let fileUrl: string;
   try {
-    fileUrl = await saveFile(fileName, file.buffer);
+    fileUrl = await saveFile(fileName, file.buffer, file.mimetype);
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Failed to save file" });
@@ -106,7 +106,7 @@ router.post("/bulk", requireAdmin, upload.array("files", 50), async (req, res) =
     const title = baseName.replace(/[-_]/g, " ").trim() || file.originalname;
 
     try {
-      const fileUrl = await saveFile(fileName, file.buffer);
+      const fileUrl = await saveFile(fileName, file.buffer, file.mimetype);
       const { rows } = await pool.query(
         `INSERT INTO ${TABLE} (title, description, file_url, file_type, featured, download_count)
          VALUES ($1, $2, $3, $4, $5, 0) RETURNING *`,

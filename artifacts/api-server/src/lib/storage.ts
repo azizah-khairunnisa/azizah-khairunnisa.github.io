@@ -31,11 +31,11 @@ export function isUsingSupabase(): boolean {
   return useSupabase;
 }
 
-export async function saveFile(fileName: string, buffer: Buffer): Promise<string> {
+export async function saveFile(fileName: string, buffer: Buffer, contentType?: string): Promise<string> {
   if (useSupabase && supabase) {
     const { error } = await supabase.storage
       .from(BUCKET)
-      .upload(fileName, buffer, { upsert: true });
+      .upload(fileName, buffer, { upsert: true, contentType: contentType || "application/octet-stream" });
     if (error) throw new Error(`Supabase upload failed: ${error.message}`);
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
     return data.publicUrl;
