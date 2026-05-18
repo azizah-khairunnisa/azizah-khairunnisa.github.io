@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFiles, trackDownload, type PortfolioFile } from "@/lib/api";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+const PdfViewer = lazy(() => import("@/components/PdfViewer"));
 import azizahPhoto from "@/assets/azizah-photo.jpg";
 import {
   FileText, Image, Download, Eye, Star, ChevronRight,
@@ -202,17 +203,13 @@ function PreviewModal({ file, onClose }: { file: PortfolioFile; onClose: () => v
     if (file.file_type === "pdf") {
       return (
         <div className="flex flex-col gap-3">
-          <object
-            data={url}
-            type="application/pdf"
-            className="w-full rounded-lg border border-slate-200 bg-slate-50"
-            style={{ height: "60vh" }}
-          >
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-500 py-10">
-              <FileText className="w-12 h-12 opacity-40" />
-              <p className="text-sm">Browser tidak mendukung preview PDF langsung.</p>
-            </div>
-          </object>
+          <div className="w-full max-h-[60vh] overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-40 text-slate-400 text-sm">Memuat PDF...</div>
+            }>
+              <PdfViewer url={url} />
+            </Suspense>
+          </div>
           <button
             onClick={openInNewTab}
             className="flex items-center justify-center gap-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl py-2.5 px-4 transition-colors"
