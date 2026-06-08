@@ -1,5 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Component, ReactNode } from "react";
 import { supabase } from "./lib/supabase";
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', sans-serif", background: "#f8fafc" }}>
+          <div style={{ textAlign: "center", padding: 40 }}>
+            <p style={{ fontSize: 48, margin: "0 0 16px" }}>⚠️</p>
+            <h1 style={{ fontSize: 24, color: "#1e293b", margin: "0 0 8px" }}>Something went wrong</h1>
+            <p style={{ color: "#64748b", margin: 0 }}>Please refresh the page or try again later.</p>
+            <pre style={{ marginTop: 16, fontSize: 12, color: "#94a3b8", textAlign: "left", background: "#f1f5f9", padding: 16, borderRadius: 8, overflow: "auto" }}>
+              {this.state.error?.message}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 interface PortfolioFile {
   id: number;
@@ -128,4 +160,5 @@ function App() {
   );
 }
 
+export { ErrorBoundary };
 export default App;
