@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 
 interface PortfolioFile {
@@ -11,12 +11,115 @@ interface PortfolioFile {
   created_at: string;
 }
 
+const DEMO_FILES: PortfolioFile[] = [
+  {
+    id: 1,
+    file_name: "opsguard-monitor.png",
+    file_url: "https://placehold.co/600x400/0f172a/ffffff?text=OpsGuard+Monitor",
+    file_type: "image/png",
+    title: "OpsGuard Monitor",
+    description: "Infrastructure Monitoring Agent — real-time server monitoring dashboard built with Python.",
+    created_at: "2026-06-01T00:00:00Z",
+  },
+  {
+    id: 2,
+    file_name: "openclaw-osint-suite.png",
+    file_url: "https://placehold.co/600x400/1e293b/ffffff?text=OSINT+Suite",
+    file_type: "image/png",
+    title: "OpenClaw OSINT Suite",
+    description: "One-click installer for OpenClaw + OSINT tools (SpiderFoot, SearXNG, Maigret, Sherlock, theHarvester, Amass, Subfinder).",
+    created_at: "2026-06-02T00:00:00Z",
+  },
+  {
+    id: 3,
+    file_name: "termux-hacklab.png",
+    file_url: "https://placehold.co/600x400/334155/ffffff?text=Termux+HackLab",
+    file_type: "image/png",
+    title: "Termux HackLab",
+    description: "Turn your Android into a GPU-accelerated Linux hacking lab. XFCE Desktop + Nmap, SQLMap, Hydra & more. No root required.",
+    created_at: "2026-06-03T00:00:00Z",
+  },
+  {
+    id: 4,
+    file_name: "subfinder.png",
+    file_url: "https://placehold.co/600x400/475569/ffffff?text=Subfinder",
+    file_type: "image/png",
+    title: "Subfinder",
+    description: "Fast passive subdomain enumeration tool — forked from ProjectDiscovery.",
+    created_at: "2026-06-04T00:00:00Z",
+  },
+  {
+    id: 5,
+    file_name: "httprobe.png",
+    file_url: "https://placehold.co/600x400/64748b/ffffff?text=httprobe",
+    file_type: "image/png",
+    title: "httprobe",
+    description: "Take a list of domains and probe for working HTTP and HTTPS servers — forked from tomnomnom.",
+    created_at: "2026-06-05T00:00:00Z",
+  },
+  {
+    id: 6,
+    file_name: "gau.png",
+    file_url: "https://placehold.co/600x400/94a3b8/0f172a?text=gau",
+    file_type: "image/png",
+    title: "gau (Get All URLs)",
+    description: "Fetch known URLs from AlienVault OTX, Wayback Machine, and Common Crawl — forked from lc.",
+    created_at: "2026-06-06T00:00:00Z",
+  },
+];
+
+const spinKeyframes = "@keyframes spin { to { transform: rotate(360deg); } }";
+
+function LoadingScreen() {
+  return (
+    <div className="loading-screen">
+      <div className="loading-content">
+        <div className="spinner" />
+        <p>Loading portfolio...</p>
+      </div>
+      <style>{spinKeyframes}</style>
+    </div>
+  );
+}
+
+function ErrorScreen({ error }: { error: string }) {
+  return (
+    <div className="error-screen">
+      <div className="error-content">
+        <p className="error-emoji">🔌</p>
+        <h2>Cannot connect to database</h2>
+        <p className="error-msg">{error}</p>
+        <p className="error-hint">
+          Make sure the Supabase table <code>portfolio_files</code> exists and is publicly readable.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function FileCard({ file }: { file: PortfolioFile }) {
+  return (
+    <div className="file-card">
+      {file.file_type?.startsWith("image/") ? (
+        <img src={file.file_url} alt={file.title || file.file_name} />
+      ) : (
+        <div className="file-placeholder">📄</div>
+      )}
+      <div className="file-info">
+        <h4>{file.title || file.file_name}</h4>
+        {file.description && <p>{file.description}</p>}
+        <span className="file-type">{file.file_type}</span>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [files, setFiles] = useState<PortfolioFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     supabase
       .from("portfolio_files")
       .select("*")
@@ -24,140 +127,87 @@ function App() {
       .then(({ data, error }) => {
         if (error) {
           setError(error.message);
-          setLoading(false);
-          return;
+          setFiles(DEMO_FILES);
+        } else {
+          setFiles(data || []);
         }
-        setFiles(data || []);
         setLoading(false);
       });
-  });
+  }, []);
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: 40, height: 40, border: "4px solid #e2e8f0", borderTop: "4px solid #0f172a", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
-          <p style={{ color: "#64748b", margin: 0 }}>Loading portfolio...</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
-        <div style={{ textAlign: "center", padding: 40, maxWidth: 500 }}>
-          <p style={{ fontSize: 48, margin: "0 0 16px" }}>🔌</p>
-          <h2 style={{ fontSize: 20, color: "#1e293b", margin: "0 0 8px" }}>Cannot connect to database</h2>
-          <p style={{ color: "#64748b", fontSize: 14, margin: "0 0 16px" }}>{error}</p>
-          <p style={{ color: "#94a3b8", fontSize: 12 }}>Make sure the Supabase table <code style={{ background: "#f1f5f9", padding: 2 }}>portfolio_files</code> exists and is publicly readable.</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen />;
+  if (error && files.length === 0) return <ErrorScreen error={error} />;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
+    <div className="app">
       {/* Header */}
-      <header style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <header className="header">
+        <div className="header-inner">
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: "#0f172a", margin: 0, fontFamily: "'Poppins', sans-serif" }}>
-              Azizah Khairunnisa
-            </h1>
-            <p style={{ color: "#64748b", margin: "2px 0 0", fontSize: 13 }}>Portfolio</p>
+            <h1 className="name">Azizah Khairunnisa</h1>
+            <p className="subtitle">Portfolio</p>
           </div>
-          <nav style={{ display: "flex", gap: 24 }}>
-            <a href="#portfolio" style={{ color: "#475569", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Portfolio</a>
-            <a href="#about" style={{ color: "#475569", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>About</a>
-            <a href="#contact" style={{ color: "#475569", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Contact</a>
+          <nav className="nav">
+            <a href="#portfolio">Portfolio</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
           </nav>
         </div>
       </header>
 
+      {/* Demo Banner */}
+      {error && files.length > 0 && (
+        <div className="demo-banner">⚠️ Supabase not connected — showing demo data</div>
+      )}
+
       {/* Hero */}
-      <section style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "#fff", padding: "80px 32px", textAlign: "center" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", fontSize: 36 }}>
-            👩‍💼
-          </div>
-          <h2 style={{ fontSize: 36, fontWeight: 700, margin: "0 0 8px", fontFamily: "'Poppins', sans-serif" }}>Hi, I'm Azizah</h2>
-          <p style={{ fontSize: 18, color: "#94a3b8", margin: "0 0 32px", lineHeight: 1.6 }}>
-            Welcome to my portfolio. Below are my works and projects.
-          </p>
+      <section className="hero">
+        <div className="hero-inner">
+          <div className="hero-avatar">👩‍💼</div>
+          <h2 className="hero-title">Hi, I'm Azizah</h2>
+          <p className="hero-desc">Welcome to my portfolio. Below are my works and projects.</p>
         </div>
       </section>
 
       {/* Portfolio Grid */}
-      <section id="portfolio" style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 32px" }}>
-        <h3 style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", margin: "0 0 32px", fontFamily: "'Poppins', sans-serif" }}>
-          📁 My Works
-        </h3>
-
+      <section id="portfolio" className="portfolio-section">
+        <h3 className="section-title">📁 My Works</h3>
         {files.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "80px 0", background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-            <p style={{ fontSize: 48, margin: "0 0 16px" }}>📂</p>
-            <p style={{ color: "#64748b", margin: 0, fontSize: 16 }}>No portfolio items yet.</p>
-            <p style={{ color: "#94a3b8", margin: "8px 0 0", fontSize: 13 }}>Upload files via Supabase to get started.</p>
+          <div className="empty-state">
+            <p className="empty-emoji">📂</p>
+            <p>No portfolio items yet.</p>
+            <p className="empty-hint">Upload files via Supabase to get started.</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
+          <div className="file-grid">
             {files.map((file) => (
-              <div key={file.id} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: "transform 0.2s", cursor: "pointer" }}>
-                {file.file_type?.startsWith("image/") ? (
-                  <img src={file.file_url} alt={file.title || file.file_name} style={{ width: "100%", height: 200, objectFit: "cover" }} />
-                ) : (
-                  <div style={{ width: "100%", height: 200, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
-                    📄
-                  </div>
-                )}
-                <div style={{ padding: 20 }}>
-                  <h4 style={{ fontSize: 16, fontWeight: 600, color: "#0f172a", margin: "0 0 4px" }}>{file.title || file.file_name}</h4>
-                  {file.description && (
-                    <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 12px", lineHeight: 1.5 }}>{file.description}</p>
-                  )}
-                  <span style={{ fontSize: 12, color: "#94a3b8", background: "#f1f5f9", padding: "4px 10px", borderRadius: 999 }}>
-                    {file.file_type}
-                  </span>
-                </div>
-              </div>
+              <FileCard key={file.id} file={file} />
             ))}
           </div>
         )}
       </section>
 
       {/* About */}
-      <section id="about" style={{ background: "#fff", borderTop: "1px solid #e2e8f0" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 32px" }}>
-          <h3 style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", margin: "0 0 16px", fontFamily: "'Poppins', sans-serif" }}>
-            👩‍💻 About Me
-          </h3>
-          <p style={{ color: "#64748b", lineHeight: 1.7, fontSize: 15, maxWidth: 600 }}>
-            Azizah Khairunnisa — a passionate professional building meaningful work. 
+      <section id="about" className="about-section">
+        <div className="section-inner">
+          <h3 className="section-title">👩‍💻 About Me</h3>
+          <p className="about-text">
+            Azizah Khairunnisa — a passionate professional building meaningful work.
             This portfolio showcases my projects, skills, and creative endeavors.
           </p>
         </div>
       </section>
 
       {/* Contact */}
-      <section id="contact" style={{ borderTop: "1px solid #e2e8f0" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 32px", textAlign: "center" }}>
-          <h3 style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", margin: "0 0 8px", fontFamily: "'Poppins', sans-serif" }}>
-            📬 Get In Touch
-          </h3>
-          <p style={{ color: "#64748b", margin: "0 0 24px" }}>Feel free to reach out for collaborations or just a hello!</p>
-          <a href="mailto:azizah@example.com" style={{ display: "inline-block", padding: "12px 32px", background: "#0f172a", color: "#fff", borderRadius: 8, textDecoration: "none", fontWeight: 500, fontSize: 14 }}>
-            Say Hello 👋
-          </a>
-        </div>
+      <section id="contact" className="contact-section">
+        <h3 className="section-title">📬 Get In Touch</h3>
+        <p className="contact-desc">Feel free to reach out for collaborations or just a hello!</p>
+        <a href="mailto:azizah@example.com" className="contact-btn">Say Hello 👋</a>
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop: "1px solid #e2e8f0", background: "#fff" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 32px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>
-          © {new Date().getFullYear()} Azizah Khairunnisa. All rights reserved.
-        </div>
+      <footer className="footer">
+        <p>© {new Date().getFullYear()} Azizah Khairunnisa. All rights reserved.</p>
       </footer>
     </div>
   );
