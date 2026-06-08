@@ -47,6 +47,21 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+.replit
+.replitignore
+replit.nix
+
+# Netlify
+netlify/
+netlify.toml
+netlify-import.env
+netlify.md
+
+# Other
+syarat.txt
+zipFile.zip
+supabase-schema.sql
+SUPABASE_SETUP.md
 
 # Netlify generated function bundle (built at deploy time)
 netlify/functions/
