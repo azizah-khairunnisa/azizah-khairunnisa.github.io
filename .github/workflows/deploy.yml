@@ -30,18 +30,12 @@ jobs:
         run: npm install -g pnpm
 
       - name: Install dependencies
-        run: |
-          cd artifacts/mockup-sandbox
-          pnpm install
+        run: pnpm install
 
-      - name: Build frontend
-        run: |
-          cd artifacts/mockup-sandbox
-          pnpm run build
+      - name: Build
+        run: pnpm run build
         env:
           NODE_ENV: production
-          PORT: 5173
-          BASE_PATH: /azizah-khairunnisa.github.io/
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: *** secrets.SUPABASE_ANON_KEY }}
 
@@ -51,7 +45,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: artifacts/mockup-sandbox/dist
+          path: dist
 
   deploy:
     environment:
