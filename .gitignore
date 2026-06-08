@@ -65,3 +65,4 @@ SUPABASE_SETUP.md
 
 # Netlify generated function bundle (built at deploy time)
 netlify/functions/
+node_modules/
